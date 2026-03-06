@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# AI models
+*.joblib
+*.pkl
+
+# Node
+node_modules/
+
+# uploads
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
