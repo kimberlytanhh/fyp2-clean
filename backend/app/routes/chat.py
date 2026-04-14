@@ -13,7 +13,7 @@ from app.models.report import Report
 router = APIRouter(prefix="/chat", tags=["Chatbot"])
 
 # ⚠️ Move this to .env later (for now keep it to avoid breaking your system)
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class TitleRequest(BaseModel):
     description: str
