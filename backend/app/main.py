@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from app.database import Base, engine
 from fastapi.staticfiles import StaticFiles
 from app.models import user, report as report_model
-from app.routes import auth, report as report_routes
+from app.routes import auth, report as report_routes, public
 from app.routes import analytics, user
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import comment, reaction, notifications, chatbot
+from app.routes import comment, reaction, notifications, chat
 
 
 
@@ -33,7 +33,8 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(comment.router)
 app.include_router(reaction.router)
 app.include_router(notifications.router)
-app.include_router(chatbot.router)
+app.include_router(chat.router)
+app.include_router(public.router)
 
 
 

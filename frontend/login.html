@@ -83,6 +83,9 @@
             <div class="full" style="grid-column:1/-1">
               <label for="regPassword">Password</label>
               <input id="regPassword" type="password" placeholder="Minimum 6 characters" required>
+              <div id="passwordStrength" style="font-size:13px; margin-top:5px; color:#aaa;">
+                Strength: -
+              </div>
             </div>
           </div>
           <div style="margin-top:12px">
@@ -101,6 +104,33 @@
       <strong>Notice</strong>
       <p>Action completed.</p>
       <button class="btn btn-sm close-toast" aria-label="Close">Close</button>
+    </div>
+  </div>
+
+  <div id="successModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+  ">
+    <div style="
+      background:#0b1437;
+      padding:25px;
+      border-radius:12px;
+      width:320px;
+      text-align:center;
+      color:white;
+    ">
+      <h3>Success</h3>
+      <p>Account created successfully.<br>Please log in.</p>
+
+      <button onclick="closeSuccessModal()" class="btn btn-primary" style="margin-top:15px;">
+        OK
+      </button>
     </div>
   </div>
 
@@ -151,18 +181,40 @@
       }
 
       const data = await res.json();
-
+      // 🔥 GET USER INFO AFTER LOGIN
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("token_type", data.token_type || "bearer");
 
-      sessionStorage.setItem('flash', 'Welcome back!');
-      window.location.href = 'profile.html';
+      const userRes = await fetch(`${API_BASE}/users/me`, {
+        headers: {
+          "Authorization": `Bearer ${data.access_token}`
+        }
+      });
 
-    } catch (err) {
-      console.error(err);
-      showToast('Unable to connect to server.');
-    }
-  });
+      const user = await userRes.json();
+
+      // ✅ STORE CORRECT VALUES
+      localStorage.setItem("user_id", user.id);
+      localStorage.setItem("username", user.name);
+
+      
+      sessionStorage.setItem('flash', 'Welcome back!');
+      const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+      localStorage.setItem("role", payload.role);
+      console.log("ROLE:", payload.role);
+
+      // 🔥 FORCE REDIRECT (RELIABLE)
+      if (payload.role === "admin") {
+        window.location.replace("/frontend/admin/dashboard.html");
+      } else {
+        window.location.replace("/frontend/profile.html");
+      }
+
+          } catch (err) {
+            console.error(err);
+            showToast('Unable to connect to server.');
+          }
+        });
 
     // Register
     registerForm.addEventListener('submit', async (ev) => {
@@ -195,14 +247,55 @@
         return showToast(data.detail || "Registration failed.");
       }
 
-      showToast("Account created. Please log in.");
-      tabLogin.click(); // switch back to login tab
+      openSuccessModal();
 
     } catch (err) {
       console.error(err);
       showToast("Unable to connect to server.");
     }
   });
+
+  function openSuccessModal() {
+    document.getElementById("successModal").style.display = "flex";
+  }
+
+  function closeSuccessModal() {
+    document.getElementById("successModal").style.display = "none";
+    tabLogin.click(); // switch to login tab
+  }
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const passwordInput = document.getElementById("regPassword");
+  const strengthText = document.getElementById("passwordStrength");
+
+  if (!passwordInput) return;
+
+  passwordInput.addEventListener("input", () => {
+    const value = passwordInput.value;
+
+    let strength = "Weak";
+    let color = "red";
+
+    const hasLetters = /[a-zA-Z]/.test(value);
+    const hasNumbers = /[0-9]/.test(value);
+    const hasSymbols = /[^a-zA-Z0-9]/.test(value);
+
+    if (value.length >= 8 && hasLetters && hasNumbers && hasSymbols) {
+      strength = "Strong";
+      color = "limegreen";
+    } else if (value.length >= 6 && hasLetters && hasNumbers) {
+      strength = "Medium";
+      color = "orange";
+    }
+
+    strengthText.textContent = "Strength: " + strength;
+    strengthText.style.color = color;
+  });
+
+});
   </script>
+
+  
 </body>
 </html>

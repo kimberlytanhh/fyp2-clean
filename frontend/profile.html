@@ -18,7 +18,23 @@
     .btn-primary{ background: var(--primary); border-color: var(--primary-600); }
     .btn-danger{ background: var(--accent); border-color: #cc2a41; }
     .thumb{ width:64px; height:64px; object-fit:cover; border-radius:10px; border:1px solid var(--border); background:#0c1226; display:block; }
-    .actions .btn{ margin-right:6px; }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .actions .btn {
+      flex: 1;
+      text-align: center;
+    }
+
+    .actions .btn {
+      min-width: 70px;
+      padding: 8px 0;
+      font-size: 13px;
+    }
+
   </style>
 </head>
 <body>
@@ -32,8 +48,16 @@
         <button class="nav-toggle" aria-controls="menu" aria-expanded="false"><span class="sr-only">Open menu</span><div class="bar"></div><div class="bar"></div><div class="bar"></div></button>
         <ul id="menu" class="menu">
           <li><a href="index.html">Home</a></li>
-          <li><a href="viewreports.html">View Reports</a></li>
           <li><a href="createreport.html">Create Report</a></li>
+          <li><a href="viewreports.html">View Reports</a></li>
+          <li><a href="map.html">Map</a></li>
+          <li>
+            <a href="notifications.html">
+              Notifications
+              <span id="notifBadge" class="badge" style="display:none">0</span>
+            </a>
+          </li>
+          <li><a href="profile.html">Profile</a></li>
         </ul>
       </nav>
     </div>
@@ -155,8 +179,12 @@ function renderReports(reports) {
       <td>${report.created_at ? new Date(report.created_at).toLocaleDateString() : "-"}</td>
       <td class="actions">
         <a class="btn btn-view" href="report.html?id=${report.id}">View</a>
+
         <a class="btn btn-edit" href="editreport.html?id=${report.id}">Edit</a>
-        <a class="btn btn-delete" href="deletereport.html?id=${report.id}">Delete</a>
+
+        <button class="btn btn-danger" onclick="deleteReport(${report.id})">
+          Delete
+        </button>
       </td>
     `;
 
@@ -171,7 +199,36 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
   loadMyReports();
 });
-</script>
 
+async function deleteReport(id) {
+  const confirmDelete = confirm("Are you sure you want to delete this report?");
+  if (!confirmDelete) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${getToken()}`
+      }
+    });
+
+    if (!res.ok) {
+      showToast("Failed to delete report");
+      return;
+    }
+
+    showToast("Report deleted successfully");
+
+    // 🔥 reload table
+    loadMyReports();
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error deleting report");
+  }
+}
+
+</script>
+<script src="assets/js/chatbot.js"></script>
 </body>
 </html>

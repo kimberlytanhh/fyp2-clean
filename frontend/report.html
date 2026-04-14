@@ -84,10 +84,18 @@
     </a>
 
     <nav class="nav">
-      <ul class="menu">
+      <ul id="menu" class="menu">
         <li><a href="index.html">Home</a></li>
-        </li>
         <li><a href="createreport.html">Create Report</a></li>
+        <li><a href="viewreports.html">View Reports</a></li>
+        <li><a href="map.html">Map</a></li>
+        <li>
+          <a href="notifications.html">
+            Notifications
+            <span id="notifBadge" class="badge" style="display:none">0</span>
+          </a>
+        </li>
+        <li><a href="profile.html">Profile</a></li>
       </ul>
     </nav>
   </div>
@@ -103,7 +111,7 @@
     align-items:center;
     gap:12px;
   ">
-    <a href="viewreports.html" class="btn btn-ghost">← Back</a>
+    <button class="btn btn-ghost" onclick="goBack()">← Back</button>
     <h1 id="reportTitle" style="margin:0"></h1>
   </div>
 
@@ -156,7 +164,7 @@ async function loadReport() {
 
 /* ---------- LOAD COMMENTS ---------- */
 async function loadComments() {
-  const res = await fetch(`${API}/reports/${reportId}/comments`);
+  const res = await fetch(`${API}/comments/reports/${reportId}/comments`)
   const data = await res.json();
 
   const commentsDiv = document.getElementById("comments");
@@ -164,18 +172,84 @@ async function loadComments() {
 
 data.forEach(c => {
   const div = document.createElement("div");
-  div.className = "comment-card";
+  div.className = "comment";
+  div.id = `comment-${c.id}`;
+
+  const currentUserId = parseInt(localStorage.getItem("user_id"));
+  console.log("COMMENT USER:", c.user_id);
+  console.log("CURRENT USER:", currentUserId);
+  const isOwner = c.user_id === currentUserId;
 
   div.innerHTML = `
-    <div class="comment-user">${c.username}</div>
-    <div class="comment-time">
-      ${new Date(c.created_at).toLocaleString()}
-    </div>
-    <div class="comment-text">${c.content}</div>
+    <p><strong>${c.username}</strong></p>
+
+    <p id="text-${c.id}">${c.content}</p>
+
+    ${
+      isOwner
+        ? `
+        <button onclick="startEdit(${c.id})">Edit</button>
+        <button onclick="deleteComment(${c.id})">Delete</button>
+      `
+        : ""
+    }
   `;
 
   commentsDiv.appendChild(div);
 });
+}
+
+async function deleteComment(id){
+  if(!confirm("Delete?")) return;
+
+  await fetch(`${API}/comments/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${getToken()}`
+    }
+  });
+
+  loadComments();
+}
+
+function startEdit(id) {
+  const commentDiv = document.getElementById(`comment-${id}`);
+  const textEl = document.getElementById(`text-${id}`);
+  const oldText = textEl.textContent;
+
+  commentDiv.innerHTML = `
+    <p><strong>${localStorage.getItem("username")}</strong></p>
+
+    <textarea id="edit-${id}" style="width:100%; margin-top:6px;">
+${oldText}
+    </textarea>
+
+    <div style="margin-top:8px;">
+      <button onclick="saveEdit(${id})">Save</button>
+      <button onclick="cancelEdit(${id}, \`${oldText}\`)">Cancel</button>
+    </div>
+  `;
+}
+
+async function saveEdit(id) {
+  const newText = document.getElementById(`edit-${id}`).value;
+
+  const formData = new FormData();
+  formData.append("content", newText);
+
+  await fetch(`${API}/comments/${id}`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${getToken()}`
+    },
+    body: formData
+  });
+
+  loadComments();
+}
+
+function cancelEdit(id, oldText) {
+  loadComments(); // easiest and cleanest
 }
 
 /* ---------- POST COMMENT ---------- */
@@ -186,7 +260,7 @@ document.getElementById("commentBtn").onclick = async () => {
   const form = new FormData();
   form.append("content", content);
 
-  await fetch(`${API}/reports/${reportId}/comments`, {
+  await fetch(`${API}/comments/reports/${reportId}/comments`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${getToken()}`
@@ -241,11 +315,18 @@ async function loadReactions() {
   document.getElementById("dislikeCount").textContent = data.dislikes;
 }
 
+function goBack() {
+  if (history.length > 1) {
+    history.back();
+  } else {
+    window.location.href = "profile.html";
+  }
+}
 
 
 
 </script>
 
-
+<script src="assets/js/chatbot.js"></script>
 </body>
 </html>

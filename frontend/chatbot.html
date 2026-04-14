@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>CIRS Chatbot</title>
+
+<link rel="stylesheet" href="assets/css/styles.css" />
+<link rel="stylesheet" href="assets/css/chatbot.css" />
+
+<style>
+.page { padding: 30px 0; }
+
+/* Chat container */
+.chat-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+/* Header row */
+.chat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Chat body */
+#chat-body {
+  height: 55vh;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* 🔥 MESSAGE STYLE */
+.message {
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  max-width: 70%;
+}
+
+.user {
+  background: #4f6ef7;
+  color: white;
+  margin-left: auto;
+}
+
+.bot {
+  background: #2a2f4a;
+}
+
+/* timestamp */
+.timestamp {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+/* typing animation */
+.typing::after {
+  content: '';
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  33% { content: '.'; }
+  66% { content: '..'; }
+  100% { content: '...'; }
+}
+
+/* input */
+#chat-input-area {
+  display: flex;
+  margin-top: 15px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
+#chat-input-area button {
+  margin-left: 8px;
+}
+</style>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+<!-- ✅ FULL NAVBAR -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <span>CIRS</span>
+    </a>
+
+    <nav class="nav">
+      <ul id="menu" class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="createreport.html">Create Report</a></li>
+        <li><a href="viewreports.html">View Reports</a></li>
+        <li><a href="map.html">Map</a></li>
+        <li>
+          <a href="notifications.html">
+            Notifications
+            <span id="notifBadge" class="badge" style="display:none">0</span>
+          </a>
+        </li>
+        <li><a href="profile.html">Profile</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <div class="container">
+
+    <div class="chat-container">
+
+      <!-- TITLE + BACK -->
+      <div class="chat-header-row">
+        <h1>CIRS Chatbot</h1>
+        <button class="btn" onclick="goBack()">← Back</button>
+      </div>
+
+      <!-- CHAT -->
+      <div id="chat-body"></div>
+
+      <!-- INPUT -->
+      <div id="chat-input-area">
+        <input id="chat-input" placeholder="Ask anything..." />
+        <button class="btn btn-primary" onclick="sendChat()">Send</button>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<script src="assets/js/chatbot.js"></script>
+
+<script>
+window.isChatPage = true;
+
+/* 🔥 Disable floating chatbot */
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("chatbot-toggle");
+  const box = document.getElementById("chatbot-box");
+  if (toggle) toggle.remove();
+  if (box) box.remove();
+
+  const chatBody = document.getElementById("chat-body");
+  const saved = localStorage.getItem("chat_history");
+
+  if (saved) {
+    chatBody.innerHTML = saved;
+  } else {
+    appendMessage("Hi! How can I help you?", "bot");
+
+    showSuggestions([
+      { text: "Create Report", action: "create" },
+      { text: "Check Status", action: "status" },
+      { text: "Ask Question", action: "ask" }
+    ]);
+  }
+});
+
+/* Back button */
+function goBack() {
+  window.history.back();
+}
+</script>
+
+</body>
+</html>

@@ -3,12 +3,16 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import shutil
 import os
-
+import uuid
+import json
+from pathlib import Path
+from app.ai.toxicity_detector import check_toxicity
 from app.database import SessionLocal
 from app.models.report import Report
 from app.models.user import User
 from app.schemas.report import ReportCreate, ReportResponse, AdminCategoryUpdate, ReportStatusUpdate
 from app.core.deps import get_current_user, require_admin
+from app.ai.image_classifier import classify_image
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -35,13 +39,35 @@ def create_report(
 ):
 
     image_path = None
+    image_category = None
+    image_confidence = None
+    final_category = None
+
+    # Run toxicity detection
+    combined_text = f"{title} {description}"
+    toxicity_result = check_toxicity(combined_text)
+
+    toxicity_score = toxicity_result["toxicity_score"]
+
+    if toxicity_result["is_toxic"]:
+        status = "flagged"
+    else:
+        status = "approved"
 
     if image:
         os.makedirs("uploads", exist_ok=True)
-        image_path = f"uploads/{image.filename}"
+
+        file_ext = os.path.splitext(image.filename)[1].lower()
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        image_path = os.path.join("uploads", unique_filename)
 
         with open(image_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
+
+        result = classify_image(image_path)
+        image_category = result["image_category"]
+        image_confidence = result["image_confidence"]
+        final_category = image_category
 
     new_report = Report(
         title=title,
@@ -52,11 +78,13 @@ def create_report(
         image_path=image_path,
         user_id=current_user.id,
 
-        # AI temporarily disabled
         text_category=None,
         text_confidence=None,
-        final_category=None,
-        needs_review=True,
+        image_category=image_category,
+        image_confidence=image_confidence,
+        final_category=final_category,
+
+        status=status
     )
 
     db.add(new_report)
@@ -74,7 +102,7 @@ def public_reports(
     sort: str = "newest"
 ):
 
-    q = db.query(Report).join(User)
+    q = db.query(Report).join(User).filter(Report.status == "approved")
 
     if status:
         q = q.filter(Report.status == status)
@@ -92,6 +120,8 @@ def public_reports(
             "title": r.title,
             "description": r.description,
             "location": r.location,
+            "latitude": r.latitude,     
+            "longitude": r.longitude, 
             "status": r.status,
             "created_at": r.created_at,
             "image_path": r.image_path,
@@ -163,23 +193,7 @@ def get_reports_for_map(db: Session = Depends(get_db)):
     ]
 
 
-# Get specific report
-@router.get("/{report_id}", response_model=ReportResponse)
-def get_report(
-    report_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
 
-    report = db.query(Report).filter(Report.id == report_id).first()
-
-    if not report:
-        raise HTTPException(status_code=404, detail="Report not found")
-
-    if report.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not allowed")
-
-    return report
 
 
 # Update report
@@ -208,12 +222,20 @@ def update_report(
 
     if image:
         os.makedirs("uploads", exist_ok=True)
-        image_path = f"uploads/{image.filename}"
+
+        file_ext = os.path.splitext(image.filename)[1].lower()
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        image_path = os.path.join("uploads", unique_filename)
 
         with open(image_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
+        result = classify_image(image_path)
+
         report.image_path = image_path
+        report.image_category = result["image_category"]
+        report.image_confidence = result["image_confidence"]
+        report.final_category = result["image_category"]
 
     db.commit()
     db.refresh(report)
@@ -244,6 +266,77 @@ def delete_report(
     db.commit()
 
     return {"detail": "Report deleted"}
+
+@router.get("/admin/all")
+def get_all_reports_for_admin(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    return db.query(Report).order_by(Report.created_at.desc()).all()
+
+
+@router.get("/admin/stats")
+def get_admin_dashboard_stats(db: Session = Depends(get_db)):
+
+    total = db.query(Report).count()
+    pending = db.query(Report).filter(Report.status == "flagged").count()
+    resolved = db.query(Report).filter(Report.status == "resolved").count()
+
+    return {
+        "total_reports": total,
+        "pending_review": pending,
+        "resolved": resolved
+    }
+
+
+@router.get("/admin/analytics/categories")
+def analytics_by_category(db: Session = Depends(get_db)):
+
+    category_expr = func.coalesce(
+        Report.final_category,
+        Report.predicted_category,
+        Report.image_category
+    )
+
+    results = (
+        db.query(
+            category_expr.label("category"),
+            func.count(Report.id)
+        )
+        .filter(category_expr.isnot(None))   # ✅ THIS LINE FIXES IT
+        .group_by(category_expr)
+        .all()
+    )
+
+    return {
+        "labels": [r[0] for r in results],
+        "counts": [r[1] for r in results]
+    }
+
+
+@router.get("/admin/flagged")
+def get_flagged_reports(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    return (
+        db.query(Report)
+        .filter(Report.status == "flagged")
+        .order_by(Report.created_at.desc())
+        .all()
+    )
+
+@router.get("/admin/approved")
+def get_approved_reports(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    return (
+        db.query(Report)
+        .filter(Report.status == "approved")
+        .order_by(Report.created_at.desc())
+        .all()
+    )
 
 
 # Admin: view all reports
@@ -285,10 +378,10 @@ def admin_dashboard_summary(db: Session = Depends(get_db)):
     total_reports = db.query(Report).count()
 
     pending_review = (
-        db.query(Report)
-        .filter(Report.needs_review == True)
-        .count()
-    )
+    db.query(Report)
+    .filter(Report.status == "flagged")
+    .count()
+)
 
     status_counts = (
         db.query(Report.status, func.count(Report.id))
@@ -319,7 +412,6 @@ def admin_update_category(
         raise HTTPException(status_code=404, detail="Report not found")
 
     report.final_category = payload.final_category
-    report.needs_review = False
 
     db.commit()
     db.refresh(report)
@@ -327,35 +419,84 @@ def admin_update_category(
     return report
 
 
-@router.get("/admin/all")
-def get_all_reports_for_admin(db: Session = Depends(get_db)):
-    return db.query(Report).order_by(Report.created_at.desc()).all()
+# Get specific report
+@router.get("/{report_id}", response_model=ReportResponse)
+def get_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
 
+    report = db.query(Report).filter(Report.id == report_id).first()
 
-@router.get("/admin/stats")
-def get_admin_dashboard_stats(db: Session = Depends(get_db)):
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
 
-    total = db.query(Report).count()
-    pending = db.query(Report).filter(Report.needs_review == True).count()
-    resolved = db.query(Report).filter(Report.status == "resolved").count()
+    if report.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    return report
+
+@router.get("/admin/image-classifier-metrics")
+def get_image_classifier_metrics():
+    metrics_path = Path("app/ai/training_metrics.json")
+
+    if not metrics_path.exists():
+        return {"message": "No training metrics found."}
+
+    with open(metrics_path, "r") as f:
+        return json.load(f)
+    
+@router.get("/admin/analytics/ai-confidence")
+def get_ai_confidence(db: Session = Depends(get_db)):
+    avg_conf = db.query(func.avg(Report.image_confidence)).scalar()
 
     return {
-        "total_reports": total,
-        "pending_review": pending,
-        "resolved": resolved
+        "average_confidence": round(avg_conf or 0, 4)
     }
 
-
-@router.get("/admin/analytics/categories")
-def analytics_by_category(db: Session = Depends(get_db)):
-
+@router.get("/admin/analytics/trend")
+def report_trend(db: Session = Depends(get_db)):
     results = (
-        db.query(Report.final_category, func.count(Report.id))
-        .group_by(Report.final_category)
+        db.query(
+            func.date(Report.created_at),
+            func.count(Report.id)
+        )
+        .group_by(func.date(Report.created_at))
         .all()
     )
 
     return {
-        "labels": [r[0] if r[0] else "Unconfirmed" for r in results],
+        "dates": [str(r[0]) for r in results],
         "counts": [r[1] for r in results]
     }
+
+@router.get("/analytics/top-location")
+def top_location(db: Session = Depends(get_db)):
+    results = (
+        db.query(Report.location, func.count(Report.id))
+        .group_by(Report.location)
+        .order_by(func.count(Report.id).desc())
+        .first()
+    )
+
+    if not results:
+        return {"location": None, "count": 0}
+
+    return {"location": results[0], "count": results[1]}
+
+@router.get("/analytics/top-category")
+def top_category(db: Session = Depends(get_db)):
+    results = (
+        db.query(Report.final_category, func.count(Report.id))
+        .filter(Report.final_category.isnot(None))
+        .group_by(Report.final_category)
+        .order_by(func.count(Report.id).desc())
+        .first()
+    )
+
+    if not results:
+        return {"category": None, "count": 0}
+
+    return {"category": results[0], "count": results[1]}
+

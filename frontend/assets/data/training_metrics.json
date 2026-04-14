@@ -1,0 +1,80 @@
+{
+    "model_name": "ResNet18",
+    "training_type": "transfer_learning",
+    "created_at": "2026-04-14 01:47:34",
+    "num_classes": 7,
+    "class_names": [
+        "accident",
+        "flood_drainage",
+        "garbage",
+        "infrastructure_damage",
+        "obstruction_fallen_tree",
+        "police_sighting",
+        "road_damage"
+    ],
+    "epochs": 20,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "best_validation_accuracy": 82.78443113772455,
+    "final_train_loss": 0.28425349057785104,
+    "final_train_accuracy": 90.81119885139985,
+    "final_validation_accuracy": 76.79640718562874,
+    "train_losses": [
+        0.9500468896968024,
+        0.6037147292069026,
+        0.45783765818391525,
+        0.47236219154936926,
+        0.37787646142499787,
+        0.2965736889413425,
+        0.25677368059754374,
+        0.25835422833051,
+        0.28425349057785104
+    ],
+    "train_accuracies": [
+        69.1313711414214,
+        79.97128499641063,
+        85.10409188801148,
+        85.53481694185211,
+        86.68341708542714,
+        89.44723618090453,
+        90.84709260588657,
+        91.95979899497488,
+        90.81119885139985
+    ],
+    "validation_accuracies": [
+        61.82634730538922,
+        58.98203592814371,
+        65.41916167664671,
+        69.76047904191617,
+        73.50299401197604,
+        82.78443113772455,
+        72.60479041916167,
+        69.46107784431138,
+        76.79640718562874
+    ],
+    "num_train_images": 2786,
+    "num_val_images": 668,
+    "train_class_distribution": {
+        "accident": 397,
+        "flood_drainage": 405,
+        "garbage": 362,
+        "infrastructure_damage": 456,
+        "obstruction_fallen_tree": 367,
+        "police_sighting": 334,
+        "road_damage": 465
+    },
+    "val_class_distribution": {
+        "accident": 80,
+        "flood_drainage": 81,
+        "garbage": 66,
+        "infrastructure_damage": 88,
+        "obstruction_fallen_tree": 171,
+        "police_sighting": 95,
+        "road_damage": 87
+    },
+    "confidence_threshold_for_other": 0.6,
+    "accuracy": 82.78443113772455,
+    "precision": 0.8346417082618292,
+    "recall": 0.8278443113772455,
+    "f1": 0.8272352587958713
+}

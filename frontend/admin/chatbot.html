@@ -3,76 +3,138 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Chatbot | CIRS</title>
+
   <link rel="stylesheet" href="../assets/css/admin.css" />
   <link rel="stylesheet" href="../assets/css/styles.css" />
-  <script defer src="../assets/js/admin/chatbot.js"></script>
+
+  <!-- ✅ PROTECT PAGE -->
+  <script>
+    const role = localStorage.getItem("role");
+
+    if (role !== "admin") {
+      window.location.href = "../login.html";
+    }
+  </script>
+
+  <!-- ✅ USE MAIN CHATBOT -->
+  <script defer src="../assets/js/chatbot.js"></script>
+  <script>
+    window.isChatPage = true;
+  </script>
 </head>
 
 <body>
   <!-- Top Bar -->
-  <header class="admin-topbar">
-    <div class="admin-topbar-left">
-      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-      <span class="admin-title">CIRS Admin</span>
-    </div>
-    <a href="../index.html" class="back-link">Back to Site</a>
-  </header>
+  <header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="logo">CIRS Admin</a>
+
+    <nav>
+      <ul class="menu">
+        <li>
+          <button id="toggleSidebar" class="btn">☰</button>
+        </li>
+        <li>
+          <a href="../index.html?admin=true">Back to Site</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
   <!-- Layout -->
-  <div class="admin-layout">
+  <div class="admin-layout" style="height:100vh;">
+    
     <!-- Sidebar -->
-    <aside id="adminSidebar" class="admin-sidebar">
+    <aside id="adminSidebar" class="admin-sidebar" style="
+    display:flex;
+    flex-direction:column;
+    height:100%;
+  ">
     <div class="sidebar-header">
       <span>Admin Menu</span>
     </div>
 
-    <ul>
-      <li class="active">
-        <span class="icon">🏠</span>
+    <ul style="flex:1;">
+      <li onclick="location.href='dashboard.html'">
         <span class="text">Dashboard</span>
       </li>
+
+      <li onclick="location.href='moderation.html'">
+        <span class="text">Moderation</span>
+      </li>
+
       <li onclick="location.href='reports.html'">
-        <span class="icon">📄</span>
         <span class="text">Reports</span>
       </li>
+
       <li onclick="location.href='analytics.html'">
-        <span class="icon">📊</span>
         <span class="text">Analytics</span>
       </li>
+
       <li onclick="location.href='chatbot.html'">
-        <span class="icon">🤖</span>
         <span class="text">Chatbot</span>
       </li>
     </ul>
+    <div style="padding:15px; border-top:1px solid rgba(255,255,255,0.1); margin-bottom:80px;">
+      <button onclick="confirmLogout()" class="btn btn-danger" style="width:100%;">
+        Sign Out
+      </button>
+    </div>
   </aside>
 
-    <!-- Main Content -->
+    <!-- Main -->
     <main class="admin-content">
       <h1>Admin Chatbot</h1>
       <p class="subtitle">
-        Ask questions about reports, categories, system status, and trends.
+        Ask questions about reports, categories, and system insights.
       </p>
 
-      <!-- Chat Container -->
-      <div class="chat-container">
-        <div class="chat-messages" id="chatMessages">
-          <div class="chat-bot">
-            👋 Hello Admin. How can I help you today?
-          </div>
+      <!-- Chat -->
+      <div class="chat-wrapper">
+  
+        <!-- Chat Messages -->
+        <div id="chat-body" class="chat-messages"></div>
+
+        <!-- Input -->
+        <div class="chat-input-bar">
+          <input id="chat-input" type="text" placeholder="Ask something..." />
+          <button onclick="sendChat()">Send</button>
         </div>
 
-        <!-- Input Bar -->
-        <div class="chat-input-bar">
-          <input
-            type="text"
-            id="chatInput"
-            placeholder="Type your question..."
-            autocomplete="off"
-          />
-          <button onclick="sendMessage()">Send</button>
-        </div>
       </div>
+
     </main>
   </div>
+  <div id="logoutModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+  ">
+    <div style="
+      background:#0b1437;
+      padding:20px;
+      border-radius:12px;
+      width:300px;
+      text-align:center;
+      color:white;
+    ">
+      <h3>Sign Out</h3>
+      <p>Are you sure you want to log out?</p>
+
+      <div style="margin-top:15px; display:flex; gap:10px; justify-content:center;">
+        <button onclick="logout()" class="btn btn-danger">Yes</button>
+        <button onclick="closeLogout()" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script src="../assets/js/logout.js"></script>
+  <script src="../assets/js/admin/layout.js"></script>
 </body>
 </html>

@@ -38,6 +38,14 @@
           <li><a href="index.html">Home</a></li>
           <li><a href="createreport.html">Create Report</a></li>
           <li><a href="viewreports.html">View Reports</a></li>
+          <li><a href="map.html">Map</a></li>
+          <li>
+            <a href="notifications.html">
+              Notifications
+              <span id="notifBadge" class="badge" style="display:none">0</span>
+            </a>
+          </li>
+          <li><a href="profile.html">Profile</a></li>
         </ul>
       </nav>
     </div>
@@ -56,14 +64,6 @@
             <div class="full">
               <label for="description">Description</label>
               <textarea id="description" required></textarea>
-            </div>
-            <div>
-              <label for="status">Status</label>
-              <select id="status">
-                <option>Submitted</option>
-                <option>In Progress</option>
-                <option>Resolved</option>
-              </select>
             </div>
             <div>
               <label for="location">Location</label>
@@ -181,6 +181,6 @@
     window.location.href = "profile.html";
   });
 </script>
-
+<script src="assets/js/chatbot.js"></script>
 </body>
 </html>

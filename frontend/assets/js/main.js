@@ -73,6 +73,8 @@ function requireAuth() {
 
 function logout() {
   localStorage.removeItem("access_token");
+  localStorage.removeItem("chat_history");
+  localStorage.removeItem("chat_flow");
   localStorage.removeItem("token_type");
   sessionStorage.setItem("flash", "Signed out.");
   window.location.href = "index.html";
@@ -93,27 +95,24 @@ function updateNavAuth() {
   const menu = document.querySelector("#menu");
   if (!menu) return;
 
-  // remove old injected auth links
+  // Remove old auth buttons only (not main menu)
   menu.querySelectorAll("[data-auth]").forEach(el => el.remove());
 
   if (isAuthenticated()) {
-    const liProfile = document.createElement("li");
-    liProfile.setAttribute("data-auth", "1");
-    liProfile.innerHTML = '<a href="profile.html">Profile</a>';
-
     const liLogout = document.createElement("li");
     liLogout.setAttribute("data-auth", "1");
+
     const a = document.createElement("a");
     a.href = "#";
     a.textContent = "Logout";
-    a.addEventListener("click", (e) => {
+    a.onclick = (e) => {
       e.preventDefault();
       logout();
-    });
-    liLogout.appendChild(a);
+    };
 
-    menu.appendChild(liProfile);
+    liLogout.appendChild(a);
     menu.appendChild(liLogout);
+
   } else {
     const liLogin = document.createElement("li");
     liLogin.setAttribute("data-auth", "1");
@@ -124,9 +123,12 @@ function updateNavAuth() {
 
 document.addEventListener("DOMContentLoaded", () => {
   updateNavAuth();
-  loadNotificationBadge();
-});
 
+  // ❌ DO NOT run on login page
+  if (!window.location.pathname.includes("login.html")) {
+    loadNotificationBadge();
+  }
+});
 
 // =========================
 // PROTECT CREATE REPORT LINK
@@ -151,7 +153,7 @@ document.addEventListener("click", (e) => {
 
 async function loadNotificationBadge() {
   if (!isAuthenticated()) return;
-
+  const API = "http://127.0.0.1:8000";
   const res = await fetch(`${API}/notifications/`, {
     headers: { Authorization: `Bearer ${getToken()}` }
   });
@@ -169,3 +171,26 @@ async function loadNotificationBadge() {
     badge.style.display = "none";
   }
 }
+
+const currentPage = window.location.pathname.split("/").pop();
+
+document.querySelectorAll(".menu a").forEach(link => {
+  if (link.getAttribute("href") === currentPage) {
+    link.classList.add("active");
+  }
+});
+
+async function loadReportCount() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/public/count");
+    const data = await res.json();
+
+    const el = document.getElementById("reportsCount");
+    if (el) el.textContent = data.count;
+
+  } catch (err) {
+    console.error("Error loading report count:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadReportCount);

@@ -8,7 +8,7 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.models.notification import Notification
 
-router = APIRouter(tags=["Comments"])
+router = APIRouter(prefix="/comments", tags=["Comments"])
 
 
 @router.get("/reports/{report_id}/comments")
@@ -29,7 +29,8 @@ def get_comments(
             "id": c.id,
             "content": c.content,
             "created_at": c.created_at,
-            "username": c.user.name,   # ✅ THIS IS KEY
+            "username": c.user.name,
+            "user_id": c.user_id
         }
         for c in comments
     ]

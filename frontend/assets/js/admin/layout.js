@@ -1,6 +1,10 @@
-const sidebar = document.getElementById("adminSidebar");
-const toggleBtn = document.getElementById("toggleSidebar");
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("toggleSidebar");
+  const sidebar = document.getElementById("adminSidebar");
 
-toggleBtn.addEventListener("click", () => {
-  sidebar.classList.toggle("collapsed");
+  if (!btn || !sidebar) return;
+
+  btn.addEventListener("click", () => {
+    sidebar.classList.toggle("collapsed");
+  });
 });

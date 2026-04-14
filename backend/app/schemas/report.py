@@ -15,8 +15,8 @@ class ReportResponse(BaseModel):
     description: str
     location: str 
     status: str
-    predicted_category: str | None
-    confidence_score: float | None
+    image_category: str | None = None
+    image_confidence: float | None = None
     image_path: Optional[str]
     created_at: datetime
     text_category: str | None

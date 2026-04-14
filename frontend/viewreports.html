@@ -61,8 +61,16 @@
       </button>
       <ul id="menu" class="menu">
         <li><a href="index.html">Home</a></li>
-        <li><a class="active" href="viewreports.html">View Reports</a></li>
         <li><a href="createreport.html">Create Report</a></li>
+        <li><a href="viewreports.html">View Reports</a></li>
+        <li><a href="map.html">Map</a></li>
+        <li>
+          <a href="notifications.html">
+            Notifications
+            <span id="notifBadge" class="badge" style="display:none">0</span>
+          </a>
+        </li>
+        <li><a href="profile.html">Profile</a></li>
       </ul>
     </nav>
   </div>
@@ -70,21 +78,15 @@
 
 <main class="page">
   <div class="container">
-    <h1>Community Reports</h1>
+  <h1>Community Reports</h1>
 
-    <div class="filters">
-      <select id="statusFilter" class="btn">
-        <option value="">All Status</option>
-        <option value="pending">Pending</option>
-        <option value="in_progress">In Progress</option>
-        <option value="resolved">Resolved</option>
-      </select>
-
-      <select id="sortFilter" class="btn">
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-      </select>
-    </div>
+  <div class="filters">
+    <select id="sortFilter" class="btn">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="popular">Most Popular</option>
+    </select>
+  </div>
 
     <div id="reportsGrid" class="grid"></div>
   </div>
@@ -94,17 +96,16 @@
 <script>
 const API_BASE = "http://127.0.0.1:8000";
 const grid = document.getElementById("reportsGrid");
-const statusFilter = document.getElementById("statusFilter");
 const sortFilter = document.getElementById("sortFilter");
 
 async function loadReports(){
   let url = `${API_BASE}/reports/public?sort=${sortFilter.value}`;
-  if(statusFilter.value) url += `&status=${statusFilter.value}`;
 
   const res = await fetch(url);
   if(!res.ok){ showToast("Failed to load reports"); return; }
 
   const reports = await res.json();
+
   grid.innerHTML = "";
 
   if(reports.length === 0){
@@ -112,51 +113,61 @@ async function loadReports(){
     return;
   }
 
-  for(const r of reports){
-    const reactRes = await fetch(`${API_BASE}/reports/${r.id}/reactions`);
-    const reactions = reactRes.ok ? await reactRes.json() : {likes:0,dislikes:0};
+  const enrichedReports = [];
 
-    const comRes = await fetch(`${API_BASE}/reports/${r.id}/comments`);
-    const comments = comRes.ok ? (await comRes.json()).length : 0;
+for(const r of reports){
+  const reactRes = await fetch(`${API_BASE}/reports/${r.id}/reactions`);
+  const reactions = reactRes.ok ? await reactRes.json() : {likes:0,dislikes:0};
 
-    const div = document.createElement("div");
-    div.className = "card";
+  const comRes = await fetch(`${API_BASE}/comments/reports/${r.id}/comments`);
+  const comments = comRes.ok ? (await comRes.json()).length : 0;
 
-    div.innerHTML = `
-      ${r.image_path
-  ? `<img src="${API_BASE}/${r.image_path}">`
-  : `<div style="
-      height:160px;
-      border:1px dashed var(--border);
-      border-radius:12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--muted);
-    ">
-      No image
-    </div>`
+  enrichedReports.push({
+    ...r,
+    likes: reactions.likes,
+    dislikes: reactions.dislikes,
+    comments: comments
+  });
 }
-      <div class="meta">Reported by <strong>${r.username}</strong></div>
-      <h3>${r.title}</h3>
-      <p class="meta">${r.location || "-"}</p>
-      <span class="badge">${r.status}</span>
 
-      <div class="meta" style="margin-top:8px">
-        👍 ${reactions.likes} &nbsp; 👎 ${reactions.dislikes} &nbsp; 💬 ${comments}
-      </div>
+// ✅ SORT HERE (CORRECT PLACE)
+if(sortFilter.value === "popular"){
+  enrichedReports.sort((a,b) => b.likes - a.likes);
+}
 
-      <p class="meta">${new Date(r.created_at).toLocaleDateString()}</p>
-      <button class="btn btn-ghost" onclick="goToReport(${r.id})">
-        View details
-      </button>
+// ✅ RENDER (UNCHANGED UI)
+for(const r of enrichedReports){
+  const div = document.createElement("div");
+  div.className = "card";
 
-    `;
-    grid.appendChild(div);
+  div.innerHTML = `
+    ${r.image_path
+      ? `<img src="${API_BASE}/${r.image_path}">`
+      : `<div style="height:160px;border:1px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--muted);">No image</div>`
+    }
+    <div class="meta">Reported by <strong>${r.username}</strong></div>
+    <h3>${r.title}</h3>
+    <p class="meta">${r.location || "-"}</p>
+    <span class="badge">${r.status}</span>
+
+    <div class="meta" style="margin-top:8px">
+      👍 ${r.likes} &nbsp; 👎 ${r.dislikes} &nbsp; 💬 ${r.comments}
+    </div>
+
+    <p class="meta">${new Date(r.created_at).toLocaleDateString()}</p>
+    <button class="btn btn-ghost" onclick="goToReport(${r.id})">
+      View details
+    </button>
+  `;
+
+  grid.appendChild(div);
+}
+  
+  if(sortFilter.value === "popular"){
+    reports.sort((a,b) => (b.likes || 0) - (a.likes || 0));
   }
 }
 
-statusFilter.onchange = loadReports;
 sortFilter.onchange = loadReports;
 loadReports();
 </script>
@@ -165,5 +176,6 @@ function goToReport(id){
   window.location.href = `report.html?id=${id}`;
 }
 </script>
+<script src="assets/js/chatbot.js"></script>
 </body>
 </html>
