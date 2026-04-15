@@ -1,7 +1,13 @@
 from detoxify import Detoxify
 
 # Load model once
-model = Detoxify("original")
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        model = Detoxify('original')
+    return model
 
 def check_toxicity(text: str):
     result = model.predict(text)
