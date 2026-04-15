@@ -10,6 +10,7 @@ def get_model():
     return model
 
 def check_toxicity(text: str):
+    model = get_model() 
     result = model.predict(text)
 
     toxicity_score = max(
