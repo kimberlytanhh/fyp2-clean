@@ -111,9 +111,20 @@ async function loadNotifications(){
 requireAuth();
 
 function formatNotificationText(n) {
+
+  if (n.message) return n.message;
+
+
   if (n.type === "like") return `${n.actor} liked your report`;
   if (n.type === "dislike") return `${n.actor} disliked your report`;
   if (n.type === "comment") return `${n.actor} commented on your report`;
+
+  if (n.type === "approved")
+    return `Your report has been approved ✅`;
+
+  if (n.type === "rejected")
+    return `Your report has been rejected ❌`;
+  
   return "New notification";
 }
 

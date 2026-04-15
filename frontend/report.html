@@ -150,7 +150,7 @@ async function loadReport() {
 
   document.getElementById("reportCard").innerHTML = `
     ${r.image_path ? `
-      <div class="image-wrap">
+      <div class="imgwrap">
         <img src="${API}/${r.image_path}">
       </div>` : ``}
 
@@ -166,7 +166,7 @@ async function loadReport() {
 async function loadComments() {
   const res = await fetch(`${API}/comments/reports/${reportId}/comments`)
   const data = await res.json();
-
+  data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   const commentsDiv = document.getElementById("comments");
   commentsDiv.innerHTML = "";
 

@@ -7,8 +7,10 @@ class Notification(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))   # receiver
+    report_id = Column(Integer, ForeignKey("reports.id"))
     actor_name = Column(String, nullable=False)
     type = Column(String, nullable=False)               # comment | like | dislike
     report_id = Column(Integer, ForeignKey("reports.id"))
+    message = Column(String, nullable=True)
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

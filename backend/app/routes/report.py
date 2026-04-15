@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.report import ReportCreate, ReportResponse, AdminCategoryUpdate, ReportStatusUpdate
 from app.core.deps import get_current_user, require_admin
 from app.ai.image_classifier import classify_image
+from app.models.notification import Notification
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -364,6 +365,20 @@ def update_report_status(
         raise HTTPException(status_code=404, detail="Report not found")
 
     report.status = payload.status
+
+    if payload.status in ["approved", "rejected"]:
+
+        notif = Notification(
+            user_id=report.user_id,
+            report_id=report.id,
+            actor_name="Admin",
+            type=payload.status,
+            message=f"Your report '{report.title}' has been {payload.status}",
+            is_read=False
+        )
+
+        db.add(notif)
+
 
     db.commit()
     db.refresh(report)
