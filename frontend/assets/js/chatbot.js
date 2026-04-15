@@ -159,7 +159,7 @@ async function sendChat() {
   ) {
     appendMessage("Fetching your reports...", "bot");
 
-    const res = await fetch("http://127.0.0.1:8000/reports/me", {
+    const res = await fetch("https://fyp2-backend-qp13.onrender.com/reports/me", {
       headers: { "Authorization": `Bearer ${getToken()}` }
     });
 
@@ -190,7 +190,7 @@ async function sendChat() {
     appendMessage("Fetching your reports...", "bot");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/reports/me", {
+      const res = await fetch("https://fyp2-backend-qp13.onrender.com/reports/me", {
         headers: { "Authorization": `Bearer ${getToken()}` }
       });
 
@@ -231,7 +231,7 @@ async function sendChat() {
 
       // 🔥 Call backend AI title generator
       try {
-        const res = await fetch("http://127.0.0.1:8000/chat/generate-title", {
+        const res = await fetch("https://fyp2-backend-qp13.onrender.com/chat/generate-title", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -322,7 +322,7 @@ if (
 
 // ================= ANALYTICS =================
   if (msg.includes("highest category")) {
-    const res = await fetch("http://127.0.0.1:8000/reports/admin/analytics/categories");
+    const res = await fetch("https://fyp2-backend-qp13.onrender.com/reports/admin/analytics/categories");
     const data = await res.json();
 
     appendMessage(`Top categories: ${data.labels.join(", ")}`, "bot");
@@ -330,7 +330,7 @@ if (
   }
 
   if (msg.includes("most reports") || msg.includes("area")) {
-    const res = await fetch("http://127.0.0.1:8000/reports/map");
+    const res = await fetch("https://fyp2-backend-qp13.onrender.coms/reports/map");
     const data = await res.json();
 
     const count = {};
@@ -349,7 +349,7 @@ if (!reportFlow.active) {
   try {
     showTyping();
 
-    const res = await fetch("http://127.0.0.1:8000/chat/", {
+    const res = await fetch("https://fyp2-backend-qp13.onrender.com/chat/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -625,7 +625,7 @@ function showSuggestions(options) {
           formData.append("image", reportFlow.data.image);
         }
 
-        await fetch("http://127.0.0.1:8000/reports/", {
+        await fetch("https://fyp2-backend-qp13.onrender.com/reports/", {
           method: "POST",
           headers: { "Authorization": `Bearer ${getToken()}` },
           body: formData
@@ -670,7 +670,7 @@ function showSuggestions(options) {
       if (opt.action.startsWith("delete_")) {
         const id = opt.action.split("_")[1];
 
-        await fetch(`http://127.0.0.1:8000/reports/${id}`, {
+        await fetch(`https://fyp2-backend-qp13.onrender.com/reports/${id}`, {
           method: "DELETE",
           headers: { "Authorization": `Bearer ${getToken()}` }
         });
@@ -681,7 +681,7 @@ function showSuggestions(options) {
       if (opt.action.startsWith("edit_existing_")) {
         const id = opt.action.split("_")[2];
 
-        const res = await fetch(`http://127.0.0.1:8000/reports/${id}`, {
+        const res = await fetch(`https://fyp2-backend-qp13.onrender.com/reports/${id}`, {
           headers: { "Authorization": `Bearer ${getToken()}` }
         });
 

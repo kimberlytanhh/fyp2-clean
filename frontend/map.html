@@ -95,7 +95,7 @@
   const map = L.map("map").setView([4.3340, 101.1350], 15);
 
   async function loadReportPins() {
-  const res = await fetch("http://127.0.0.1:8000/reports/map");
+  const res = await fetch("https://fyp2-backend-qp13.onrender.com/reports/map");
   const reports = await res.json();
 
   reports.forEach(r => {

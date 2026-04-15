@@ -1,4 +1,4 @@
-const STATS_API = "http://127.0.0.1:8000/reports/admin/stats";
+const STATS_API = "https://fyp2-backend-qp13.onrender.com/reports/admin/stats";
 
 async function loadStats() {
 

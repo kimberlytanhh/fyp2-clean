@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://fyp2-backend-qp13.onrender.com";
 const REPORTS_API = `${API_BASE}/reports`;
 
 let reportsCache = [];
@@ -194,7 +194,7 @@ function viewReport(id) {
   const img = document.getElementById("viewImage");
 
   if (report.image_path) {
-    img.src = `http://127.0.0.1:8000/${report.image_path}`;
+    img.src = `https://fyp2-backend-qp13.onrender.com/${report.image_path}`;
     img.style.display = "block";
   } else {
     img.style.display = "none";

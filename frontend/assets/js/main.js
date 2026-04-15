@@ -153,7 +153,7 @@ document.addEventListener("click", (e) => {
 
 async function loadNotificationBadge() {
   if (!isAuthenticated()) return;
-  const API = "http://127.0.0.1:8000";
+  const API = "https://fyp2-backend-qp13.onrender.com";
   const res = await fetch(`${API}/notifications/`, {
     headers: { Authorization: `Bearer ${getToken()}` }
   });
@@ -182,7 +182,7 @@ document.querySelectorAll(".menu a").forEach(link => {
 
 async function loadReportCount() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/public/count");
+    const res = await fetch("https://fyp2-backend-qp13.onrender.com/public/count");
     const data = await res.json();
 
     const el = document.getElementById("reportsCount");
