@@ -742,9 +742,9 @@ function createChatbotUI() {
       const role = localStorage.getItem("role");
 
       if (role === "admin") {
-        window.location.href = "/frontend/admin/chatbot.html";
+        window.location.href = "/admin/chatbot.html";
       } else {
-        window.location.href = "/frontend/chatbot.html";
+        window.location.href = "/chatbot.html";
       }
       };
 
