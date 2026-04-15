@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://fyp2-backend-qp13.onrender.com";
 let allReports = [];
 let showAllFlagged = false;
 let showAllRecent = false;
