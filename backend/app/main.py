@@ -6,7 +6,7 @@ from app.routes import auth, report as report_routes, public
 from app.routes import analytics, user
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import comment, reaction, notifications, chat
-
+from app.ai.toxicity_detector import get_model
 
 
 
@@ -38,3 +38,9 @@ app.include_router(public.router)
 @app.get("/health")
 def health():
     return {"status": "Backend is running safely"}
+
+@app.on_event("startup")
+def load_model():
+    print("Loading Detoxify model...")
+    get_model()
+    print("Model loaded successfully")
