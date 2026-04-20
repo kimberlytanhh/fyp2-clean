@@ -34,11 +34,14 @@ def get_db():
 def detect_admin_intent(msg: str):
     msg = msg.lower()
 
-    if "highest" in msg and "category" in msg:
+    if "category" in msg and ("most" in msg or "highest" in msg):
         return "top_category"
 
     if "how many" in msg and "report" in msg:
         return "total_reports"
+    
+    if "pending" in msg:
+        return "pending_reports"
 
     if "flagged" in msg and "how many" in msg:
         return "flagged_count"
@@ -46,7 +49,7 @@ def detect_admin_intent(msg: str):
     if "flagged reports" in msg:
         return "flagged_summary"
 
-    if "top location" in msg or "most reports area" in msg:
+    if "location" in msg or "area" in msg:
         return "top_location"
 
     # 🔥 AI CONFIDENCE (SMART HANDLING)
@@ -133,6 +136,10 @@ def handle_admin_query(intent: str, db: Session):
     if intent == "ai_confidence":
         avg = db.query(func.avg(Report.image_confidence)).scalar()
         return f"Average AI confidence is {round(avg or 0, 4)}."
+
+    if intent == "pending_reports":
+        count = db.query(func.count(Report.id)).filter(Report.status == "pending").scalar()
+        return f"There are {count} pending reports."
 
     return None
 
