@@ -37,17 +37,14 @@ def detect_admin_intent(msg: str):
     if "category" in msg and ("most" in msg or "highest" in msg):
         return "top_category"
 
-    if "how many" in msg and "report" in msg:
-        return "total_reports"
-    
-    if "pending" in msg:
-        return "pending_reports"
-
     if "flagged" in msg and "how many" in msg:
         return "flagged_count"
 
-    if "flagged reports" in msg:
-        return "flagged_summary"
+    if "pending" in msg and "how many" in msg:
+        return "pending_reports"
+
+    if "how many" in msg and "report" in msg:
+        return "total_reports"
 
     if "location" in msg or "area" in msg:
         return "top_location"
