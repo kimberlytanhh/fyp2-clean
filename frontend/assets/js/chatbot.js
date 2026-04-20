@@ -329,8 +329,35 @@ if (
     return;
   }
 
-  if (msg.includes("most reports") || msg.includes("area")) {
-    const res = await fetch("https://fyp2-backend-qp13.onrender.coms/reports/map");
+// ================= CATEGORY ANALYTICS =================
+if (
+  msg.includes("category") ||
+  msg.includes("type") ||
+  msg.includes("incident type")
+) {
+  try {
+    const res = await fetch("https://fyp2-backend-qp13.onrender.com/reports/admin/analytics/categories");
+    const data = await res.json();
+
+    const maxIndex = data.data.indexOf(Math.max(...data.data));
+    const topCategory = data.labels[maxIndex];
+
+    appendMessage(`The category with the most reports is ${topCategory}`, "bot");
+  } catch {
+    appendMessage("Failed to retrieve category data ❌", "bot");
+  }
+
+  return;
+}
+
+// ================= LOCATION ANALYTICS =================
+if (
+  msg.includes("location") ||
+  msg.includes("area") ||
+  msg.includes("place")
+) {
+  try {
+    const res = await fetch("https://fyp2-backend-qp13.onrender.com/reports/map");
     const data = await res.json();
 
     const count = {};
@@ -340,9 +367,13 @@ if (
 
     const top = Object.entries(count).sort((a,b)=>b[1]-a[1])[0];
 
-    appendMessage(`Area with most reports: ${top[0]}`, "bot");
-    return;
+    appendMessage(`The location with the most reports is ${top[0]}`, "bot");
+  } catch {
+    appendMessage("Failed to retrieve location data ❌", "bot");
   }
+
+  return;
+}
 
 // ONLY use AI if no report flow
 if (!reportFlow.active) {
