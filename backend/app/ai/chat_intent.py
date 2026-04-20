@@ -27,20 +27,29 @@ intent_embeddings = {
     for k, v in INTENTS.items()
 }
 
-def detect_intent(user_message: str):
-    query_embedding = model.encode(user_message, convert_to_tensor=True)
+def detect_admin_intent(msg: str):
+    msg = msg.lower()
 
-    best_intent = None
-    best_score = 0
+    # 🔥 MOST SPECIFIC FIRST
+    if "flagged" in msg:
+        return "flagged_count"
 
-    for intent, embeddings in intent_embeddings.items():
-        score = util.cos_sim(query_embedding, embeddings).max().item()
-        if score > best_score:
-            best_score = score
-            best_intent = intent
+    if "pending" in msg:
+        return "pending_reports"
 
-    # Threshold prevents random matches
-    if best_score < 0.5:
-        return None
+    if "highest" in msg and "category" in msg:
+        return "top_category"
+
+    if "category" in msg and "most" in msg:
+        return "top_category"
+
+    if "location" in msg or "area" in msg:
+        return "top_location"
+
+    # 🔥 GENERAL LAST
+    if "how many" in msg and "report" in msg:
+        return "total_reports"
+
+    return None
 
     return best_intent
