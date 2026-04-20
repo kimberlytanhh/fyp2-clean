@@ -34,20 +34,30 @@ def get_db():
 def detect_admin_intent(msg: str):
     msg = msg.lower()
 
+        # 🔥 FLAGGED FIRST (most specific)
+    if "flagged" in msg:
+        return "flagged_count"
+
+    # 🔥 PENDING
+    if "pending" in msg:
+        return "pending_reports"
+
+    # 🔥 CATEGORY
     if "category" in msg and ("most" in msg or "highest" in msg):
         return "top_category"
 
-    if "flagged" in msg and "how many" in msg:
-        return "flagged_count"
-
-    if "pending" in msg and "how many" in msg:
-        return "pending_reports"
-
-    if "how many" in msg and "report" in msg:
-        return "total_reports"
-
+    # 🔥 LOCATION
     if "location" in msg or "area" in msg:
         return "top_location"
+
+    # 🔥 TOTAL (LAST, VERY STRICT)
+    if (
+        "how many" in msg and 
+        "report" in msg and 
+        "flagged" not in msg and 
+        "pending" not in msg
+    ):
+        return "total_reports"
 
     # 🔥 AI CONFIDENCE (SMART HANDLING)
     if "confidence" in msg:
