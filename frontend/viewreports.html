@@ -89,10 +89,7 @@
   </div>
 
     <div id="reportsGrid" class="grid"></div>
-    <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-      <button class="btn" onclick="prevPage()">Prev</button>
-      <button class="btn" onclick="nextPage()">Next</button>
-    </div>
+      <div id="pagination" style="margin-top:20px; display:flex; gap:8px; justify-content:center;"></div>
   </div>
 </main>
 
@@ -102,33 +99,24 @@ const API_BASE = "https://fyp2-backend-qp13.onrender.com";
 const grid = document.getElementById("reportsGrid");
 const sortFilter = document.getElementById("sortFilter");
 
-let currentPage = 1;
+let reportPage = 1;
+let lastTotal = 0;
 async function loadReports(){
-  let url = `${API_BASE}/reports/public?sort=${sortFilter.value}&page=${currentPage}&per_page=8`;
+  let url = `${API_BASE}/reports/public?sort=${sortFilter.value}&page=${reportPage}&per_page=8`;
 
   const res = await fetch(url);
   if(!res.ok){ showToast("Failed to load reports"); return; }
 
   const data = await res.json();
   const reports = data.reports;
+  lastTotal = data.total;
+  const totalPages = Math.ceil(data.total / data.per_page);
 
   grid.innerHTML = "";
 
   if(reports.length === 0){
     grid.innerHTML = "<p class='meta'>No reports found.</p>";
     return;
-  }
-
-  function nextPage(){
-    currentPage++;
-    loadReports();
-  }
-
-  function prevPage(){
-    if(currentPage > 1){
-      currentPage--;
-      loadReports();
-    }
   }
 
   const enrichedReports = await Promise.all(
@@ -183,8 +171,58 @@ for(const r of enrichedReports){
   grid.appendChild(div);
 }
   
+const paginationDiv = document.getElementById("pagination");
+paginationDiv.innerHTML = "";
+
+// Prev button
+const prevBtn = document.createElement("button");
+prevBtn.textContent = "Prev";
+prevBtn.className = "btn";
+prevBtn.onclick = prevPage;
+paginationDiv.appendChild(prevBtn);
+
+// Page numbers
+for(let i = 1; i <= totalPages; i++){
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.className = "btn";
+
+  if(i === reportPage){
+    btn.style.background = "#2347ff";
+  }
+
+  btn.onclick = () => {
+    reportPage = i;
+    loadReports();
+  };
+
+  paginationDiv.appendChild(btn);
+}
+
+// Next button
+const nextBtn = document.createElement("button");
+nextBtn.textContent = "Next";
+nextBtn.className = "btn";
+nextBtn.onclick = nextPage;
+paginationDiv.appendChild(nextBtn);
+
   if(sortFilter.value === "popular"){
     reports.sort((a,b) => (b.likes || 0) - (a.likes || 0));
+  }
+}
+
+function nextPage(){
+  const totalPages = Math.ceil(lastTotal / 8);
+  if(reportPage < totalPages){
+    reportPage++;
+    loadReports();
+  }
+}
+
+function prevPage(){
+  if(reportPage > 1){
+    reportPage--;
+    loadReports();
   }
 }
 
