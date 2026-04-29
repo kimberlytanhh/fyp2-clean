@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import shutil
@@ -98,11 +98,11 @@ def create_report(
 # Public reports list
 @router.get("/public")
 def public_reports(
+    request: Request,
     db: Session = Depends(get_db),
     status: str | None = None,
     sort: str = "newest"
 ):
-
     q = db.query(Report).join(User).filter(Report.status == "approved")
 
     if status:
@@ -113,23 +113,34 @@ def public_reports(
     else:
         q = q.order_by(Report.created_at.desc())
 
-    reports = q.all()
+    # ✅ Pagination
+    page = int(request.query_params.get("page", 1))
+    per_page = int(request.query_params.get("per_page", 8))
 
-    return [
-        {
-            "id": r.id,
-            "title": r.title,
-            "description": r.description,
-            "location": r.location,
-            "latitude": r.latitude,     
-            "longitude": r.longitude, 
-            "status": r.status,
-            "created_at": r.created_at,
-            "image_path": r.image_path,
-            "username": r.user.name,
-        }
-        for r in reports
-    ]
+    total = q.count()
+
+    reports = q.offset((page - 1) * per_page).limit(per_page).all()
+
+    return {
+        "reports": [
+            {
+                "id": r.id,
+                "title": r.title,
+                "description": r.description,
+                "location": r.location,
+                "latitude": r.latitude,
+                "longitude": r.longitude,
+                "status": r.status,
+                "created_at": r.created_at,
+                "image_path": r.image_path,
+                "username": r.user.name,
+            }
+            for r in reports
+        ],
+        "total": total,
+        "page": page,
+        "per_page": per_page
+    }
 
 
 # Public report detail
