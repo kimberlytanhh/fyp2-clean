@@ -22,27 +22,8 @@ let reportFlow = {
 const savedFlow = localStorage.getItem("chat_flow");
 if (savedFlow) reportFlow = JSON.parse(savedFlow);
 
-
-// ================= LOCATION HELPERS =================
-const utarLocations = [
-  { name: "UTAR Hospital", lat: 4.335643680926576, lng: 101.13409370187286 },
-  { name: "Sports Complex", lat: 4.337189559608293, lng: 101.13387037967343 },
-  { name: "Block A", lat: 4.335060632449933, lng: 101.14121764899113 },
-  { name: "Block B", lat: 4.336323012075548, lng: 101.14121764899113 },
-  { name: "Block C", lat: 4.3373015173789975, lng: 101.14271377131746 },
-  { name: "Block D", lat: 4.337932705606769, lng: 101.14387248560776 },
-  { name: "Block E", lat: 4.338831345530085, lng: 101.14388321444407 },
-  { name: "Block F", lat: 4.339649821633896, lng: 101.14363246995747 },
-  { name: "Block G", lat: 4.339805922272733, lng: 101.14289588018976 },
-  { name: "Block H", lat: 4.340249605508609, lng: 101.14349542405694 },
-  { name: "Block I", lat: 4.340808321394057, lng: 101.14281276135904 },
-  { name: "Block J", lat: 4.341242955077045, lng: 101.14443401460868 },
-  { name: "Block K", lat: 4.34320848995479, lng: 101.13904598191814 },
-  { name: "Block L", lat: 4.34181514137652, lng: 101.14024693151563 },
-  { name: "Block M", lat: 4.339275019847939, lng: 101.13479609111785 },
-  { name: "Block N", lat: 4.338815002175124, lng: 101.13673264607912 },
-  { name: "Block P", lat: 4.338910558500822, lng: 101.13731457253103 }
-];
+// Use existing utarLocations if available (from page)
+const chatbotUTARLocations = window.utarLocations || [];
 
 async function reverseGeocode(lat, lng) {
   const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -562,7 +543,7 @@ function showSuggestions(options) {
       }
 
       if (opt.action === "loc_utar") {
-        showSuggestions(utarLocations.map(loc => ({
+        showSuggestions(chatbotUTARLocations.map(loc => ({
           text: loc.name,
           action: `utar_${loc.name}`
         })));
@@ -683,8 +664,20 @@ function createChatbotUI() {
   const div = document.createElement("div");
 
   div.innerHTML = `
-    <div id="chatbot-toggle">💬</div>
-    <div id="chatbot-box">
+    <div id="chatbot-container">
+
+      <div id="chatbot-toggle">
+        💬
+
+        <div id="chatbotHintBox" class="chatbot-hint-box">
+          <span id="closeHint">✕</span>
+
+          👋 Hey! Need help reporting something?<br>
+          I can guide you step-by-step or even create a report for you.
+        </div>
+      </div>
+
+      <div id="chatbot-box">
       <div id="chat-header">
         <span>CIRS Chatbot</span>
         <div>
@@ -698,13 +691,49 @@ function createChatbotUI() {
         <button onclick="sendChat()">➤</button>
       </div>
     </div>
+  </div>
   `;
 
   document.body.appendChild(div);
 
+  // ✅ get elements ONCE (global inside function)
+  const hint = document.getElementById("chatbotHintBox");
+  const closeBtn = document.getElementById("closeHint");
+
+  // ✅ attach close button
+  if (closeBtn && hint) {
+    closeBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      hint.classList.remove("show");
+    });
+  }
+
+
+  // ONLY show on create report page
+  const isCreatePage = window.location.pathname.includes("createreport.html");
+
+  if (isCreatePage && hint) {
+
+  // show popup
+    setTimeout(() => {
+      hint.classList.add("show");
+    }, 1500);
+
+    // auto hide after 20 seconds
+    setTimeout(() => {
+      hint.classList.remove("show");
+    }, 16500); // 1.5s delay + 20s visible
+  }
+
+
   // ✅ NOW elements exist → safe to attach events
 
-  document.getElementById("chatbot-toggle").onclick = () => {
+  document.getElementById("chatbot-toggle").onclick = (e) => {
+
+    // prevent toggle if clicking popup or X
+    if (e.target.closest("#chatbotHintBox")) return;
+
     document.getElementById("chatbot-box").classList.toggle("show");
   };
 

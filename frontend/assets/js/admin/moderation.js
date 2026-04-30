@@ -1,7 +1,6 @@
 const API_BASE = "https://fyp2-backend-qp13.onrender.com";
 let allReports = [];
 let showAllFlagged = false;
-let showAllRecent = false;
 /* =========================
    LOAD MODERATION REPORTS
 ========================= */
@@ -24,26 +23,14 @@ async function loadModeration() {
   const reports = await res.json();
   allReports = reports;
   const flagged = document.getElementById("flaggedReports");
-  const recent = document.getElementById("recentReports");
   const approved = document.getElementById("approvedReports");
   const rejected = document.getElementById("rejectedReports");
 
   approved.innerHTML = "";
   rejected.innerHTML = "";  
   flagged.innerHTML = "";
-  recent.innerHTML = "";
 
   const flaggedReports = reports.filter(r => r.status === "flagged");
-  const recentReports = reports.filter(r => r.status !== "flagged");
-
-  flaggedReports.forEach(r =>
-    flagged.appendChild(createCard(r, true))
-  );
-
-  recentReports.forEach(r =>
-    recent.appendChild(createCard(r, false))
-  );
-
   const approvedReports = reports.filter(r => r.status === "approved");
   const rejectedReports = reports.filter(r => r.status === "rejected");
 
@@ -53,6 +40,10 @@ async function loadModeration() {
 
   rejectedReports.forEach(r =>
     rejected.appendChild(createCard(r, false))
+  );
+
+  flaggedReports.forEach(r =>
+    flagged.appendChild(createCard(r, true))
   );
 
   }
@@ -113,21 +104,28 @@ function createCard(report, isFlagged) {
           </button>
 
       ${
-        isFlagged
+        report.status === "flagged"
           ? `
           <button class="btn approve" onclick="approveReport(${report.id})">
             Approve
           </button>
-
           <button class="btn reject" onclick="rejectReport(${report.id})">
             Reject
           </button>
           `
-          : `
+          : report.status === "approved"
+          ? `
           <button class="btn reject" onclick="rejectReport(${report.id})">
             Reject
           </button>
           `
+          : report.status === "rejected"
+          ? `
+          <button class="btn approve" onclick="approveReport(${report.id})">
+            Approve
+          </button>
+          `
+          : ""
       }
 
     </div>
@@ -216,10 +214,7 @@ function toggleFlagged() {
   loadModeration();
 }
 
-function toggleRecent() {
-  showAllRecent = !showAllRecent;
-  loadModeration();
-}
+
 
 
 /* =========================
@@ -253,7 +248,25 @@ window.openModal = function(id) {
   document.getElementById("modalTitle").textContent = report.title || "-";
   document.getElementById("modalDescription").textContent = report.description || "-";
   document.getElementById("modalLocation").textContent = report.location || "-";
-  document.getElementById("modalSeverity").textContent = report.status || "-";
+  const severityRow = document.getElementById("severityRow");
+  const severityEl = document.getElementById("modalSeverity");
+
+  if (report.status === "flagged" && report.toxicity_score != null) {
+
+    const s = severity(report.toxicity_score);
+
+    severityEl.textContent = s.label;
+
+    // 🎨 COLOR
+    if (s.label === "HIGH") severityEl.style.color = "red";
+    if (s.label === "MEDIUM") severityEl.style.color = "orange";
+    if (s.label === "LOW") severityEl.style.color = "lightgreen";
+
+    severityRow.style.display = "block";
+
+  } else {
+    severityRow.style.display = "none";
+  }
 
   const img = document.getElementById("modalImage");
 
@@ -262,10 +275,33 @@ window.openModal = function(id) {
     img.style.display = "block";
   } else {
     img.style.display = "none";
+    severityEl.style.color = "";
   }
 
   document.getElementById("reviewModal").style.display = "flex";
 
-  document.getElementById("approveBtn").onclick = () => approveReport(report.id);
-  document.getElementById("rejectBtn").onclick = () => rejectReport(report.id);
+  const approveBtn = document.getElementById("approveBtn");
+  const rejectBtn = document.getElementById("rejectBtn");
+
+  // reset visibility
+  approveBtn.style.display = "none";
+  rejectBtn.style.display = "none";
+
+  if (report.status === "flagged") {
+    approveBtn.style.display = "inline-block";
+    rejectBtn.style.display = "inline-block";
+
+    approveBtn.onclick = () => approveReport(report.id);
+    rejectBtn.onclick = () => rejectReport(report.id);
+  }
+
+  if (report.status === "approved") {
+    rejectBtn.style.display = "inline-block";
+    rejectBtn.onclick = () => rejectReport(report.id);
+  }
+
+  if (report.status === "rejected") {
+    approveBtn.style.display = "inline-block";
+    approveBtn.onclick = () => approveReport(report.id);
+  }
 };

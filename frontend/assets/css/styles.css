@@ -313,24 +313,6 @@ body{
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
-/* Floating button */
-#chatbot-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #4a6cf7;
-  color: white;
-  border-radius: 50%;
-  width: 55px;
-  height: 55px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 9999;
-}
 
 /* Chat container */
 #chatbot-box {
@@ -521,4 +503,107 @@ body{
 textarea {
   border-radius: 8px;
   padding: 6px;
+}
+
+.chatbot-cta-card {
+  background: linear-gradient(135deg, #0b1437, #162a6c);
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.chatbot-cta-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.chatbot-icon {
+  font-size: 40px;
+  background: rgba(255,255,255,0.08);
+  padding: 14px;
+  border-radius: 12px;
+}
+
+.chatbot-cta-card h2 {
+  margin-bottom: 8px;
+}
+
+.chatbot-cta-card p {
+  margin-bottom: 14px;
+  max-width: 500px;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .chatbot-cta-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.chatbot-hint-box {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  background: linear-gradient(135deg, #1c2b6b, #2a3f9d);
+  color: white;
+  padding: 12px 14px;
+  border-radius: 12px;
+  width: 240px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.chatbot-hint-box.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#closeHint {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.hint-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: white;
+  color: #1c2b6b;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+/* ===== CHATBOT POSITION FIX ===== */
+#chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* Chat icon */
+#chatbot-toggle {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #2347ff, #6ea8ff);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  position: relative;
 }

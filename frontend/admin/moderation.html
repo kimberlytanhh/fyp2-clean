@@ -97,21 +97,6 @@
 
 </div>
 
-
-<div class="section-header">
-  <h2>📄 Recent </h2>
-  <button onclick="location.href='moderation-full.html?type=recent'" class="view-all">View All</button>
-</div>
-
-<div class="scroll-row">
-
-<button class="scroll-btn left" onclick="scrollRow('recentReports',-1)">◀</button>
-
-<div id="recentReports" class="report-row"></div>
-
-<button class="scroll-btn right" onclick="scrollRow('recentReports',1)">▶</button>
-
-</div>
 <div class="section-header">
   <h2>✅ Approved</h2>
   <button onclick="location.href='moderation-full.html?type=approved'" class="view-all">
@@ -157,7 +142,9 @@
 
     <p><strong>Location:</strong> <span id="modalLocation"></span></p>
 
-    <p><strong>Severity:</strong> <span id="modalSeverity"></span></p>
+    <p id="severityRow" style="display:none;">
+      <strong>Severity:</strong> <span id="modalSeverity"></span>
+    </p>
 
     <div class="modal-actions">
       <button id="approveBtn" class="btn btn-primary">Approve</button>
