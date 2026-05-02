@@ -77,7 +77,6 @@ body{
 .count{ font-size: 28px; font-weight: 800; }
 .label{ color: var(--muted); font-size: 13px; }
 
-.hero-art{ }
 .hero-svg{ width:100%; border-radius: 18px; box-shadow: var(--shadow); }
 
 /* Animate roads and pins */
@@ -328,7 +327,7 @@ body{
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   z-index: 9999;
-
+  pointer-events: none;
   opacity: 0;
   transform: translateY(20px);
   transition: all 0.3s ease;
@@ -337,6 +336,7 @@ body{
 #chatbot-box.show {
   opacity: 1;
   transform: translateY(0);
+  pointer-events:auto;
 }
 
 /* Header */
@@ -591,6 +591,7 @@ textarea {
   bottom: 20px;
   right: 20px;
   z-index: 9999;
+  pointer-events:none;
 }
 
 /* Chat icon */
