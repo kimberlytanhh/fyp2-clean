@@ -23,7 +23,25 @@ const savedFlow = localStorage.getItem("chat_flow");
 if (savedFlow) reportFlow = JSON.parse(savedFlow);
 
 // Use existing utarLocations if available (from page)
-const chatbotUTARLocations = window.utarLocations || [];
+const chatbotUTARLocations = [
+  { name: "UTAR Hospital", lat: 4.335643680926576, lng: 101.13409370187286 },
+  { name: "Sports Complex", lat: 4.337189559608293, lng: 101.13387037967343 },
+  { name: "Block A", lat: 4.335060632449933, lng: 101.14121764899113 },
+  { name: "Block B", lat: 4.336323012075548, lng: 101.14121764899113 },
+  { name: "Block C", lat: 4.3373015173789975, lng: 101.14271377131746 },
+  { name: "Block D", lat: 4.337932705606769, lng: 101.14387248560776 },
+  { name: "Block E", lat: 4.338831345530085, lng: 101.14388321444407 },
+  { name: "Block F", lat: 4.339649821633896, lng: 101.14363246995747 },
+  { name: "Block G", lat: 4.339805922272733, lng: 101.14289588018976 },
+  { name: "Block H", lat: 4.340249605508609, lng: 101.14349542405694 },
+  { name: "Block I", lat: 4.340808321394057, lng: 101.14281276135904 },
+  { name: "Block J", lat: 4.341242955077045, lng: 101.14443401460868 },
+  { name: "Block K", lat: 4.34320848995479, lng: 101.13904598191814 },
+  { name: "Block L", lat: 4.34181514137652, lng: 101.14024693151563 },
+  { name: "Block M", lat: 4.339275019847939, lng: 101.13479609111785 },
+  { name: "Block N", lat: 4.338815002175124, lng: 101.13673264607912 },
+  { name: "Block P", lat: 4.338910558500822, lng: 101.13731457253103 }
+];
 
 async function reverseGeocode(lat, lng) {
   const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -488,6 +506,26 @@ function showSuggestions(options) {
   };
 
     link.onclick = async () => {
+      // ===== MAIN MENU ACTIONS =====
+      if (opt.action === "create") {
+        reportFlow.active = true;
+        reportFlow.step = "title_choice";
+        reportFlow.data = {};
+
+        appendMessage("Would you like to create your own title or let AI generate one?", "bot");
+
+        showSuggestions([
+          { text: "✍️ I’ll write my own", action: "title_manual" },
+          { text: "🤖 Generate with AI", action: "title_ai" }
+        ]);
+        return;
+      }
+
+      if (opt.action === "ask") {
+        appendMessage("What would you like to ask?", "bot");
+        return;
+      }
+
       // ===== TITLE CHOICE =====
       if (opt.action === "title_manual") {
         reportFlow.step = "title";
@@ -550,7 +588,7 @@ function showSuggestions(options) {
       }
 
       if (opt.action.startsWith("utar_")) {
-        const loc = utarLocations.find(l => l.name === opt.text);
+        const loc = chatbotUTARLocations.find(l => l.name === opt.text);
 
         reportFlow.data.location = loc.name;
         reportFlow.data.latitude = loc.lat;
@@ -730,11 +768,28 @@ function createChatbotUI() {
   // ✅ NOW elements exist → safe to attach events
 
   document.getElementById("chatbot-toggle").onclick = (e) => {
+    e.preventDefault();       // 🔥 stop link behavior
+    e.stopPropagation();      // 🔥 stop bubbling to main.js
 
-    // prevent toggle if clicking popup or X
     if (e.target.closest("#chatbotHintBox")) return;
 
-    document.getElementById("chatbot-box").classList.toggle("show");
+    const box = document.getElementById("chatbot-box");
+
+    box.classList.toggle("show");
+
+    // ✅ FIRST TIME OPEN → show greeting
+    if (box.classList.contains("show")) {
+      const chatBody = document.getElementById("chat-body");
+
+      if (!chatBody.innerHTML.trim()) {
+        appendMessage("How may I help you today?", "bot");
+
+        showSuggestions([
+          { text: "Create Report", action: "create" },
+          { text: "Ask Question", action: "ask" }
+        ]);
+      }
+    }
   };
 
   document.getElementById("chat-close").onclick = () => {
