@@ -23,6 +23,7 @@ class ReportResponse(BaseModel):
     text_confidence: float | None
     final_category: str | None
     needs_review: bool
+    is_confirmed: bool
 
 class AdminCategoryUpdate(BaseModel):
         final_category: str

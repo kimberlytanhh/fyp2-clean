@@ -36,3 +36,4 @@ class Report(Base):
     # Final decision
     final_category = Column(String, nullable=True)
     needs_review = Column(Boolean, default=True)
+    is_confirmed = Column(Boolean, default=False)

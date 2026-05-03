@@ -69,6 +69,8 @@ def create_report(
         image_category = result["image_category"]
         image_confidence = result["image_confidence"]
         final_category = image_category
+        is_confirmed = False
+
 
     new_report = Report(
         title=title,
@@ -85,7 +87,8 @@ def create_report(
         image_confidence=image_confidence,
         final_category=final_category,
 
-        status=status
+        status=status,
+        is_confirmed = False
     )
 
     db.add(new_report)
@@ -279,7 +282,7 @@ def delete_report(
 
     return {"detail": "Report deleted"}
 
-@router.get("/admin/all")
+@router.get("/admin/all" , response_model=list[ReportResponse])
 def get_all_reports_for_admin(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
@@ -438,6 +441,7 @@ def admin_update_category(
         raise HTTPException(status_code=404, detail="Report not found")
 
     report.final_category = payload.final_category
+    report.is_confirmed = True
 
     db.commit()
     db.refresh(report)

@@ -56,6 +56,7 @@ async function loadReports() {
     }
 
     const data = await res.json();
+    console.log(data);
     reportsCache = data;
     tbody.innerHTML = "";
 
@@ -73,7 +74,8 @@ async function loadReports() {
 
       const aiCategory = r.image_category ?? r.text_category ?? null;
       const confidence = r.image_confidence ?? r.text_confidence ?? null;
-      const finalCategory = r.final_category ?? aiCategory ?? null;
+      const finalCategory = r.final_category;
+      const isConfirmed = r.is_confirmed === true;
 
       row.innerHTML = `
         <td>${r.title ?? "-"}</td>
@@ -82,7 +84,7 @@ async function loadReports() {
           ${confidence != null ? `${(confidence * 100).toFixed(1)}%` : "N/A"}
         </td>
         <td>
-          <select id="cat-${r.id}">
+          <select id="cat-${r.id}" ${isConfirmed ? "disabled" : ""}>
             <option value="road_damage" ${finalCategory === "road_damage" ? "selected" : ""}>Road Damage</option>
             <option value="flood_drainage" ${finalCategory === "flood_drainage" ? "selected" : ""}>Flood Drainage</option>
             <option value="garbage" ${finalCategory === "garbage" ? "selected" : ""}>Garbage</option>
@@ -94,9 +96,15 @@ async function loadReports() {
             <option value="other" ${finalCategory === "other" ? "selected" : ""}>Other</option>
           </select>
         </td>
-        <td>
+       <td>
           <button onclick="viewReport(${r.id})">View</button>
-          <button onclick="confirmCategory(${r.id})">Confirm</button>
+
+          ${
+            isConfirmed
+              ? `<span style="color:green;font-weight:bold;"> Confirmed</span>`
+              : `<button onclick="confirmCategory(${r.id}, this)">Confirm</button>`
+          }
+
           <button onclick="deleteReport(${r.id})">Delete</button>
         </td>
       `;
@@ -113,7 +121,7 @@ async function loadReports() {
   }
 }
 
-async function confirmCategory(id) {
+async function confirmCategory(id, btn) {
   const category = document.getElementById(`cat-${id}`).value;
 
   try {
@@ -134,8 +142,18 @@ async function confirmCategory(id) {
       throw new Error(`Failed to update category: ${res.status}`);
     }
 
-    alert("Category updated.");
-    loadReports();
+    // 🔥 Get row
+    const row = btn.closest("tr");
+
+    // 1. Turn row green
+    row.style.backgroundColor = "#e6ffed";
+
+    // 2. Disable dropdown
+    const select = document.getElementById(`cat-${id}`);
+    if (select) select.disabled = true;
+
+    // 3. Replace button with "Confirmed"
+    btn.outerHTML = `<span style="color:green;font-weight:bold;"> Confirmed</span>`;
   } catch (error) {
     console.error("Error updating category:", error);
     alert("Failed to update category.");
