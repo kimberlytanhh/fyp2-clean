@@ -163,7 +163,7 @@ async function loadModelMetrics() {
 
     // ✅ Accuracy (your real metric)
     document.getElementById("accuracy").textContent =
-      (data.final_validation_accuracy ?? 0).toFixed(1) + "%";
+      (data.best_validation_accuracy ?? data.accuracy ?? 0).toFixed(1) + "%";
 
     document.getElementById("precision").textContent =
       data.precision != null ? (data.precision * 100).toFixed(1) + "%" : "-";
